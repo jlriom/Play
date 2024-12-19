@@ -1,4 +1,6 @@
 using Play.Catalog.Service.Dtos;
+using Play.Catalog.Service.Entities;
+using Play.Catalog.Service.Repositories;
 
 namespace Play.Catalog.Service.Endpoints;
 
@@ -17,50 +19,62 @@ public static class ItemsEndpoints
         const string url = "api/items";
         var itemsGroup = endpoints.MapGroup(url);
         
-        itemsGroup.MapGet("", () => Items).WithName("GetAllItems");
-        itemsGroup.MapGet("{id:guid}", (Guid id) =>
+        itemsGroup.MapGet("", async (ItemsRepository itemsRepository) =>
         {
-            var item = Items.FirstOrDefault(i => i.Id == id);
+            var items = (await itemsRepository.GetAllAsync()).Select(item => item.AsDto());
+            
+            return items;
+        }).WithName("GetAllItems");
+        
+        itemsGroup.MapGet("{id:guid}", async (ItemsRepository itemsRepository, Guid id) =>
+        {
+            
+            var item = await itemsRepository.GetByIdAsync(id);
             
             return item == null 
                 ? Results.NotFound() 
-                : Results.Ok(item);
+                : Results.Ok(item.AsDto());
             
         }).WithName("GetById");
         
-        itemsGroup.MapPost("", (CreateItemDto createItemDto) =>
+        itemsGroup.MapPost("", async (ItemsRepository itemsRepository, CreateItemDto createItemDto) =>
         {
-            var item = new ItemDto(Guid.NewGuid(), createItemDto.Name, createItemDto.Description, createItemDto.Price, DateTimeOffset.Now);
-            Items.Add(item);
+            var item = new Item
+            {
+                Id = Guid.NewGuid(),
+                Name = createItemDto.Name,
+                Description = createItemDto.Description,
+                Price = createItemDto.Price,
+                CreatedDate = DateTimeOffset.UtcNow
+            };
+            
+            await itemsRepository.CreateAsync(item);
+
             
             return Results.Created($"{url}/{item.Id}", item);
         }).WithName("PostItem");
         
-        itemsGroup.MapPut("{id:guid}", (Guid id, UpdateItemDto updateItemDto) =>
+        itemsGroup.MapPut("{id:guid}", async (ItemsRepository itemsRepository, Guid id, UpdateItemDto updateItemDto) =>
         {
-            var existingItem = Items.FirstOrDefault(i => i.Id == id);
+            var existingItem = await itemsRepository.GetByIdAsync(id);
             
             if (existingItem == null) return Results.NotFound();
             
-            var updatedItem = existingItem with
-            {
-                Name = updateItemDto.Name,
-                Description = updateItemDto.Description,
-                Price = updateItemDto.Price
-            };
-            var index = Items.FindIndex(item => item.Id  == id);
-            Items[index] = updatedItem;
+            existingItem.Name = updateItemDto.Name;
+            existingItem.Description = updateItemDto.Description;
+            existingItem.Price = updateItemDto.Price;
 
             return Results.NoContent();
         }).WithName("PutItem");
         
-        itemsGroup.MapDelete("{id:guid}", (Guid id) =>
+        itemsGroup.MapDelete("{id:guid}", async (ItemsRepository itemsRepository, Guid id) =>
         {
-            var index = Items.FindIndex(item => item.Id  == id);
+            var existingItem = await itemsRepository.GetByIdAsync(id);
             
-            if (index > -1 ) return Results.NotFound();
+            if (existingItem == null) return Results.NotFound();
 
-            Items.RemoveAt(index);
+            await itemsRepository.RemoveAsync(existingItem.Id);
+            
             return Results.NoContent();
         }).WithName("DeleteItem");
     }
