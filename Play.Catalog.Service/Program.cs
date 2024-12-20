@@ -1,7 +1,7 @@
-using MongoDB.Bson;
 using Play.Catalog.Service.Endpoints;
+using Play.Catalog.Service.Entities;
 using Play.Catalog.Service.Repositories;
-using Scalar.AspNetCore;
+using Play.Common.MongoDb;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
-builder.Services.AddScoped<ItemsRepository>();
+builder.Services
+    .AddMongo()
+    .AddMongoRepository<Item>("items");
 
 var app = builder.Build();
 
@@ -17,7 +19,6 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    app.MapScalarApiReference();
 }
 
 app.UseHttpsRedirection();
@@ -25,4 +26,3 @@ app.UseHttpsRedirection();
 app.MapItemsEndpoints();
 
 app.Run();
-
