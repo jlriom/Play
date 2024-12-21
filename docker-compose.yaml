@@ -1,0 +1,25 @@
+﻿services:
+  
+  mongo:
+    image: mongo
+    container_name: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb-data:/data/db 
+  
+#  play.catalog.service:
+#    image: play.catalog.service
+#    build:
+#      context: .
+#      dockerfile: play.catalog.service/dockerfile
+
+#  play.inventory.service:
+#    image: play.inventory.service
+#    build:
+#      context: .
+#      dockerfile: Play.Inventory.Service/Dockerfile
+
+
+volumes:
+  mongodb-data:

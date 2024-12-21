@@ -1,6 +1,6 @@
-using Play.Catalog.Service.Endpoints;
-using Play.Catalog.Service.Entities;
 using Play.Common.MongoDb;
+using Play.Inventory.Service.Endpoints;
+using Play.Inventory.Service.Entities;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,7 +10,7 @@ builder.Services.AddOpenApi();
 
 builder.Services
     .AddMongo()
-    .AddMongoRepository<Item>("items");
+    .AddMongoRepository<InventoryItem>("inventoryItems");
 
 var app = builder.Build();
 

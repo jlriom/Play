@@ -29,7 +29,7 @@ public class MongoRepository<T> : IRepository<T> where T : IEntity
         return await dbCollection.Find(filter).FirstOrDefaultAsync();
     }
 
-    public async Task<T> GetByIdAsync(Expression<Func<T, bool>> predicate)
+    public async Task<T> GetAsync(Expression<Func<T, bool>> predicate)
     {
         return await dbCollection.Find(predicate).FirstOrDefaultAsync();
     }

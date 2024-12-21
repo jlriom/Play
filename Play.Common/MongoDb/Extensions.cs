@@ -21,5 +21,15 @@ public static class Extensions
         return services;
     }
 
+    public static IServiceCollection AddMongoRepository<T>(this IServiceCollection services, string collectionName)
+        where T : IEntity
+    {
+        services.AddScoped<IRepository<T>>(serviceProvider =>
+        {
+            var database = serviceProvider.GetService<IMongoDatabase>();
+            return new MongoRepository<T>(database!, collectionName);
+        });
+        return services;
+    }
 
 }

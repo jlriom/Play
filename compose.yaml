@@ -1,6 +1,0 @@
-﻿services:
-  play.catalog.service:
-    image: play.catalog.service
-    build:
-      context: .
-      dockerfile: Play.Catalog.Service/Dockerfile
