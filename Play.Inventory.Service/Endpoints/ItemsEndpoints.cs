@@ -1,5 +1,6 @@
 
 using Play.Common;
+using Play.Inventory.Service.Clients;
 using Play.Inventory.Service.Dtos;
 using Play.Inventory.Service.Entities;
 
@@ -12,16 +13,24 @@ public static class ItemsEndpoints
         const string url = "api/items";
         var itemsGroup = endpoints.MapGroup(url);
 
-        itemsGroup.MapGet($"", async (IRepository<InventoryItem> itemsRepository, Guid userId ) =>
+        itemsGroup.MapGet($"", async (IRepository<InventoryItem> itemsRepository, CatalogClient catalogClient, Guid userId ) =>
         {
             if (userId == Guid.Empty)
             {
                 return Results.BadRequest();
             }
-            
-            var items = (await itemsRepository.GetAllAsync(item => item.UsedId == userId)).Select(item => item.AsDto());
 
-            return Results.Ok(items);
+            var catalogItems = await catalogClient.GetCatalogItemsAsync();
+            
+            var items = (await itemsRepository.GetAllAsync(item => item.UsedId == userId));
+
+            var inventoryItemDtos = items.Select(item =>
+            {
+                var catalogItem = catalogItems.FirstOrDefault(ci => ci.Id == item.CatalogItemId);
+                return item.AsDto(catalogItem.Name, catalogItem.Description);
+            });
+            
+            return Results.Ok(inventoryItemDtos);
         });
 
         itemsGroup.MapPost("", async (IRepository<InventoryItem> itemsRepository, GrantItemsDto grantItemsDto) =>

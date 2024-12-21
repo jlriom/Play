@@ -13,6 +13,7 @@ public static class ItemsEndpoints
 
         itemsGroup.MapGet("", async (IRepository<Item> itemsRepository) =>
         {
+            
             var items = (await itemsRepository.GetAllAsync()).Select(item => item.AsDto());
 
             return items;
