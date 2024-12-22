@@ -1,5 +1,6 @@
 using Play.Catalog.Service.Endpoints;
 using Play.Catalog.Service.Entities;
+using Play.Common.MassTransit;
 using Play.Common.MongoDb;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,9 @@ builder.Services.AddOpenApi();
 builder.Services
     .AddMongo()
     .AddMongoRepository<Item>("items");
+
+builder.Services
+    .AddMassTransitWithRabbitMq();
 
 var app = builder.Build();
 

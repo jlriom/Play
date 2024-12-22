@@ -7,6 +7,16 @@
       - "27017:27017"
     volumes:
       - mongodb-data:/data/db 
+        
+  rabbitmq:
+    image: rabbitmq:management
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+    hostname: rabbitmq
   
 #  play.catalog.service:
 #    image: play.catalog.service
@@ -23,6 +33,7 @@
 
 volumes:
   mongodb-data:
+  rabbitmq-data:
 
 networks:
   default:

@@ -13,21 +13,24 @@ public static class ItemsEndpoints
         const string url = "api/items";
         var itemsGroup = endpoints.MapGroup(url);
 
-        itemsGroup.MapGet($"", async (IRepository<InventoryItem> itemsRepository, CatalogClient catalogClient, Guid userId ) =>
+        itemsGroup.MapGet($"", async (
+            IRepository<InventoryItem> inventoryItemsRepository, 
+            IRepository<CatalogItem> catalogItemsRepository, 
+            Guid userId ) =>
         {
             if (userId == Guid.Empty)
             {
                 return Results.BadRequest();
             }
 
-            var catalogItems = await catalogClient.GetCatalogItemsAsync();
+            var inventoryItemsEntities = (await inventoryItemsRepository.GetAllAsync(item => item.UsedId == userId));
+            var itemIds = inventoryItemsEntities.Select(item => item.CatalogItemId);
+            var catalogItemsEntities = await catalogItemsRepository.GetAllAsync(item => itemIds.Contains(item.Id));
             
-            var items = (await itemsRepository.GetAllAsync(item => item.UsedId == userId));
-
-            var inventoryItemDtos = items.Select(item =>
+            var inventoryItemDtos = inventoryItemsEntities.Select(item =>
             {
-                var catalogItem = catalogItems.FirstOrDefault(ci => ci.Id == item.CatalogItemId);
-                return item.AsDto(catalogItem.Name, catalogItem.Description);
+                var catalogItem = catalogItemsEntities.FirstOrDefault(ci => ci.Id == item.CatalogItemId);
+                return item.AsDto(catalogItem!.Name, catalogItem.Description);
             });
             
             return Results.Ok(inventoryItemDtos);
